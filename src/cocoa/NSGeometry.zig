@@ -32,4 +32,10 @@ pub const NSRect = extern struct {
             .size = .{ .width = w, .height = h },
         };
     }
+
+    pub fn fill(self: NSRect) void {
+        NSRectFill(self);
+    }
 };
+
+extern "C" fn NSRectFill(rect: NSRect) void;

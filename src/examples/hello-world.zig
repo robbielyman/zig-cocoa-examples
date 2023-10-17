@@ -1,6 +1,6 @@
 const std = @import("std");
 const objc = @import("zig-objc");
-const cocoa = @import("cocoa.zig");
+const cocoa = @import("cocoa");
 
 pub fn main() void {
     setup();

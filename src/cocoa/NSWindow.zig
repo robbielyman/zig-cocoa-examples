@@ -1,5 +1,6 @@
 const std = @import("std");
 const objc = @import("zig-objc");
+const cocoa = @import("../cocoa.zig");
 
 pub fn class() objc.Class {
     return objc.getClass("NSWindow").?;
@@ -32,3 +33,12 @@ pub const BackingStore = enum(c_uint) {
     Nonretained = 1,
     Buffered = 2,
 };
+
+pub fn initWith(window: objc.Object, contentRect: cocoa.NSRect, styleMask: StyleMask, backing: BackingStore, deferred: bool) objc.Object {
+    return window.message(objc.Object, "initWithContentRect:styleMask:backing:defer:", .{
+        contentRect,
+        styleMask,
+        backing,
+        if (deferred) cocoa.YES else cocoa.NO,
+    });
+}
