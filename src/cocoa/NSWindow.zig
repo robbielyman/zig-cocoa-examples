@@ -22,6 +22,15 @@ pub const StyleMask = packed struct {
     fullsize_content_view: bool,
     _padding: u48 = 0,
 
+    pub const default: StyleMask = .{
+        .titled = true,
+        .closable = true,
+        .miniaturizable = true,
+        .fullscreen = false,
+        .fullsize_content_view = true,
+        .resizable = true,
+    };
+
     comptime {
         std.debug.assert(@sizeOf(@This()) == @sizeOf(u64));
         std.debug.assert(@bitSizeOf(@This()) == @bitSizeOf(u64));

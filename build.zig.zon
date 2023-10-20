@@ -3,8 +3,8 @@
     .version = "0.0.0",
     .dependencies = .{
         .zig_objc = .{
-            .url = "https://github.com/ryleelyman/zig-objc/archive/7651b5ce1db1f05048405e40b1363a9b37a79607.tar.gz",
-            .hash = "12206007011e20aab7bbaacd09af62eee5d1eb14bd2a54b6790dedf68cd254b6e910",
+            .url = "https://github.com/ryleelyman/zig-objc/archive/126cbcf14323436d9dd04dbaa6c20b87e127be0f.tar.gz",
+            .hash = "12200ea456c2321eceeb4505318d69f37c676942feb2aedd214147b46fa0ef4a0df8",
         },
     },
 }

@@ -7,6 +7,11 @@ const programs: []const []const u8 = &.{
     "application-idle",
     "drawing",
     "windows-and-messages",
+    "timer",
+    "window",
+    "tab-control",
+    "panel",
+    "groupbox",
 };
 
 pub fn build(b: *std.Build) void {
@@ -35,6 +40,7 @@ pub fn build(b: *std.Build) void {
         });
         b.installArtifact(prog);
         prog.linkFramework("Cocoa");
+        // prog.linkFramework("System");
         prog.addModule("zig-objc", zig_objc.module("objc"));
         prog.addModule("cocoa", cocoa);
         const run_cmd = b.addRunArtifact(prog);

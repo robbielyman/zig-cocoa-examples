@@ -8,6 +8,9 @@ pub const NSColor = @import("cocoa/NSColor.zig");
 pub const NSEvent = @import("cocoa/NSEvent.zig");
 pub const NSRunLoop = @import("cocoa/NSRunLoop.zig");
 pub const NSNotification = @import("cocoa/NSNotification.zig");
+pub const NSBezel = @import("cocoa/NSBezel.zig");
+pub const NSNumber = @import("cocoa/NSNumber.zig");
+pub const NSView = @import("cocoa/NSView.zig");
 
 pub fn NSString(string: [:0]const u8) objc.Object {
     const nsstring = objc.getClass("NSString").?;
@@ -20,6 +23,10 @@ pub fn descriptionToOwnedSlice(allocator: std.mem.Allocator, object: objc.Object
     return allocator.dupeZ(u8, slice);
 }
 
+pub const BOOL = enum(i8) {
+    YES = 1,
+    NO = 0,
+};
 pub const YES: i8 = 1;
 pub const NO: i8 = 0;
 

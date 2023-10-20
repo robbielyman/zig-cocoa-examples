@@ -1,4 +1,4 @@
-pub const std = @import("std");
+const std = @import("std");
 
 pub const Descriptor = struct {
     pub const SymbolicTraits = packed struct {
