@@ -21,7 +21,7 @@ fn setup() void {
                 .resizable = true,
                 .closable = true,
             };
-            self.message_super(
+            self.msgSendSuper(
                 objc.getClass("NSWindow").?,
                 void,
                 "initWithContentRect:styleMask:backing:defer:",
@@ -29,43 +29,43 @@ fn setup() void {
                     cocoa.NSRect.make(10, 10, 300, 300),
                     mask,
                     .Buffered,
-                    cocoa.NO,
+                    .NO,
                 },
             );
-            self.message(void, "setTitle:", .{cocoa.NSString("Window and Messages")});
-            self.setProperty("isVisible", .{cocoa.YES});
-            const center = objc.getClass("NSNotificationCenter").?.message(objc.Object, "defaultCenter", .{});
-            center.message(void, "addObserver:selector:name:object:", .{
+            self.msgSend(void, "setTitle:", .{cocoa.NSString("Window and Messages")});
+            self.setProperty("isVisible", .{.YES});
+            const center = objc.getClass("NSNotificationCenter").?.msgSend(objc.Object, "defaultCenter", .{});
+            center.msgSend(void, "addObserver:selector:name:object:", .{
                 self,
                 objc.sel("windowDidEnterFullScreen:"),
                 cocoa.NSNotification.name(.WindowDidEnterFullScreen),
                 self,
             });
-            center.message(void, "addObserver:selector:name:object:", .{
+            center.msgSend(void, "addObserver:selector:name:object:", .{
                 self,
                 objc.sel("windowDidExitFullScreen:"),
                 cocoa.NSNotification.name(.WindowDidExitFullScreen),
                 self,
             });
-            center.message(void, "addObserver:selector:name:object:", .{
+            center.msgSend(void, "addObserver:selector:name:object:", .{
                 self,
                 objc.sel("windowDidMove:"),
                 cocoa.NSNotification.name(.WindowDidMove),
                 self,
             });
-            center.message(void, "addObserver:selector:name:object:", .{
+            center.msgSend(void, "addObserver:selector:name:object:", .{
                 self,
                 objc.sel("windowDidResize:"),
                 cocoa.NSNotification.name(.WindowDidResize),
                 self,
             });
-            center.message(void, "addObserver:selector:name:object:", .{
+            center.msgSend(void, "addObserver:selector:name:object:", .{
                 self,
                 objc.sel("windowDidMiniaturize:"),
                 cocoa.NSNotification.name(.WindowDidMiniaturize),
                 self,
             });
-            center.message(void, "addObserver:selector:name:object:", .{
+            center.msgSend(void, "addObserver:selector:name:object:", .{
                 self,
                 objc.sel("windowDidDeMiniaturize:"),
                 cocoa.NSNotification.name(.WindowDidDeMiniaturize),
@@ -137,11 +137,11 @@ fn setup() void {
             target: objc.c.id,
             sel: objc.c.SEL,
             sender: objc.c.id,
-        ) callconv(.C) i8 {
+        ) callconv(.C) objc.c.BOOL {
             _ = sel;
             _ = target;
             logger.info("closing!", .{});
-            cocoa.NSApp().message(void, "terminate:", .{sender});
+            cocoa.NSApp().msgSend(void, "terminate:", .{sender});
             return cocoa.NO;
         }
     };
@@ -161,6 +161,6 @@ pub fn main() void {
     const NSApp = cocoa.NSApp();
     const Window = objc.getClass("Window").?;
     const window1 = cocoa.alloc(Window);
-    window1.message(objc.Object, "init", .{}).message(objc.Object, "autorelease", .{}).message(void, "makeMainWindow", .{});
-    NSApp.message(void, "run", .{});
+    window1.msgSend(objc.Object, "init", .{}).msgSend(objc.Object, "autorelease", .{}).msgSend(void, "makeMainWindow", .{});
+    NSApp.msgSend(void, "run", .{});
 }

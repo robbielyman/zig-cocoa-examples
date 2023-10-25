@@ -9,28 +9,28 @@ pub fn main() !void {
         .{ .closable = true, .fullscreen = false, .fullsize_content_view = true, .miniaturizable = true, .resizable = true, .titled = true },
         .Buffered,
         false,
-    ).message(objc.Object, "autorelease", .{});
-    window1.setProperty("isVisible", .{cocoa.YES});
+    ).msgSend(objc.Object, "autorelease", .{});
+    window1.setProperty("isVisible", .{.YES});
     const NSApp = cocoa.NSApp();
     const NSAutoReleasePool = objc.getClass("NSAutoreleasePool").?;
-    var pool = cocoa.alloc(NSAutoReleasePool).message(objc.Object, "init", .{});
-    NSApp.message(void, "finishLaunching", .{});
+    var pool = cocoa.alloc(NSAutoReleasePool).msgSend(objc.Object, "init", .{});
+    NSApp.msgSend(void, "finishLaunching", .{});
     var timer = try std.time.Timer.start();
     var elapsed: u64 = 0;
     var counter: u32 = 0;
     while (true) {
-        pool.message(void, "release", .{});
-        pool = cocoa.alloc(objc.getClass("NSAutoreleasePool").?).message(objc.Object, "init", .{});
+        pool.msgSend(void, "release", .{});
+        pool = cocoa.alloc(objc.getClass("NSAutoreleasePool").?).msgSend(objc.Object, "init", .{});
 
-        const event = NSApp.message(objc.Object, "nextEventMatchingMask:untilDate:inMode:dequeue:", .{
+        const event = NSApp.msgSend(objc.Object, "nextEventMatchingMask:untilDate:inMode:dequeue:", .{
             cocoa.NSEvent.Mask.any,
-            objc.getClass("NSDate").?.message(objc.Object, "distantPast", .{}).value,
+            objc.getClass("NSDate").?.msgSend(objc.Object, "distantPast", .{}).value,
             cocoa.NSRunLoop.Mode(.default).value,
-            cocoa.YES,
+            .YES,
         });
         if (event.value != null) {
-            NSApp.message(void, "sendEvent:", .{event});
-            NSApp.message(void, "updateWindows", .{});
+            NSApp.msgSend(void, "sendEvent:", .{event});
+            NSApp.msgSend(void, "updateWindows", .{});
         } else {
             elapsed += timer.lap();
             if (elapsed > std.time.ns_per_s) {
@@ -44,11 +44,11 @@ pub fn main() !void {
                 const allocator = buf_heap.allocator();
                 const title = std.fmt.allocPrintZ(allocator, "{d}", .{counter}) catch @panic("OOM!");
                 defer allocator.free(title);
-                window1.message(void, "setTitle:", .{
+                window1.msgSend(void, "setTitle:", .{
                     cocoa.NSString(title),
                 });
             }
         }
     }
-    pool.message(void, "release", .{});
+    pool.msgSend(void, "release", .{});
 }

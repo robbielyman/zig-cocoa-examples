@@ -12,13 +12,13 @@ pub fn main() void {
         .titled = true,
     };
     const backing = .Buffered;
-    const window1 = NSWindow.message(objc.Object, "alloc", .{}).message(objc.Object, "initWithContentRect:styleMask:backing:defer:", .{
+    const window1 = NSWindow.msgSend(objc.Object, "alloc", .{}).msgSend(objc.Object, "initWithContentRect:styleMask:backing:defer:", .{
         cocoa.NSRect.make(100, 100, 300, 300),
         styleMask,
         backing,
-        cocoa.NO,
-    }).message(objc.Object, "autorelease", .{});
-    window1.setProperty("isVisible", .{cocoa.YES});
-    const NSApp = objc.getClass("NSApplication").?.message(objc.Object, "sharedApplication", .{});
-    NSApp.message(void, "run", .{});
+        .NO,
+    }).msgSend(objc.Object, "autorelease", .{});
+    window1.setProperty("isVisible", .{.YES});
+    const NSApp = objc.getClass("NSApplication").?.msgSend(objc.Object, "sharedApplication", .{});
+    NSApp.msgSend(void, "run", .{});
 }

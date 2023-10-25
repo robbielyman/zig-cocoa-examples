@@ -12,6 +12,7 @@ const programs: []const []const u8 = &.{
     "tab-control",
     "panel",
     "groupbox",
+    "main-menu",
 };
 
 pub fn build(b: *std.Build) void {

@@ -36,7 +36,7 @@ fn setupWindow() void {
             target: objc.c.id,
             sel: objc.c.SEL,
             sender: objc.c.id,
-        ) callconv(.C) i8 {
+        ) callconv(.C) objc.c.BOOL {
             _ = sel;
             return if (windowShouldClose(objc.Object.fromId(target), sender)) cocoa.YES else cocoa.NO;
         }
@@ -49,7 +49,7 @@ fn setupWindow() void {
 fn draw(self: objc.Object, rect: cocoa.NSRect) void {
     _ = self;
     const green = cocoa.NSColor.colorWithSRGB(0.2, 1.0, 0.6, 1.0);
-    green.message(void, "set", .{});
+    green.msgSend(void, "set", .{});
     rect.fill();
 }
 
@@ -60,21 +60,21 @@ fn initWith(
     backing: cocoa.NSWindow.BackingStore,
     deferred: bool,
 ) objc.Object {
-    self.message_super(objc.getClass("NSWindow").?, void, "initWithContentRect:styleMask:backing:defer:", .{
+    self.msgSendSuper(objc.getClass("NSWindow").?, void, "initWithContentRect:styleMask:backing:defer:", .{
         contentRect,
         styleMask,
         backing,
         deferred,
     });
-    const view = cocoa.alloc(objc.getClass("View").?).message(objc.Object, "init", .{});
+    const view = cocoa.alloc(objc.getClass("View").?).msgSend(objc.Object, "init", .{});
     _ = self.setInstanceVariable("view", view);
-    self.message(objc.Object, "contentView", .{}).message(void, "addSubview:", .{view});
+    self.msgSend(objc.Object, "contentView", .{}).msgSend(void, "addSubview:", .{view});
     return self;
 }
 
 fn windowShouldClose(self: objc.Object, sender: objc.c.id) bool {
     _ = self;
-    cocoa.NSApp().message(void, "terminate:", .{sender});
+    cocoa.NSApp().msgSend(void, "terminate:", .{sender});
     return false;
 }
 
@@ -89,43 +89,43 @@ pub fn main() void {
         .resizable = true,
         .titled = true,
     };
-    const window1 = cocoa.alloc(Window).message(objc.Object, "initWithContentRect:styleMask:backing:defer:", .{
+    const window1 = cocoa.alloc(Window).msgSend(objc.Object, "initWithContentRect:styleMask:backing:defer:", .{
         cocoa.NSRect.make(0, 0, 300, 300),
         stylemask,
         .Buffered,
-        cocoa.NO,
+        .NO,
     });
-    window1.message(void, "setTitle:", .{cocoa.NSString("Drawing Example")});
-    window1.setProperty("isVisible", .{cocoa.YES});
+    window1.msgSend(void, "setTitle:", .{cocoa.NSString("Drawing Example")});
+    window1.setProperty("isVisible", .{.YES});
 
     const NSApp = cocoa.NSApp();
-    window1.message(void, "makeMainWindow", .{});
-    window1.message(void, "makeKeyWindow", .{});
+    window1.msgSend(void, "makeMainWindow", .{});
+    window1.msgSend(void, "makeKeyWindow", .{});
 
     const NSAutoreleasePool = objc.getClass("NSAutoreleasePool").?;
-    var pool = cocoa.alloc(NSAutoreleasePool).message(objc.Object, "init", .{});
+    var pool = cocoa.alloc(NSAutoreleasePool).msgSend(objc.Object, "init", .{});
     const hasIdle = false;
     while (true) {
-        pool.message(void, "release", .{});
-        pool = cocoa.alloc(NSAutoreleasePool).message(objc.Object, "init", .{});
-        const date = objc.getClass("NSDate").?.message(objc.Object, if (hasIdle) "distantPast" else "distantFuture", .{});
-        const event = NSApp.message(
+        pool.msgSend(void, "release", .{});
+        pool = cocoa.alloc(NSAutoreleasePool).msgSend(objc.Object, "init", .{});
+        const date = objc.getClass("NSDate").?.msgSend(objc.Object, if (hasIdle) "distantPast" else "distantFuture", .{});
+        const event = NSApp.msgSend(
             objc.Object,
             "nextEventMatchingMask:untilDate:inMode:dequeue:",
             .{
                 cocoa.NSEvent.Mask.any,
                 date,
                 cocoa.NSRunLoop.Mode(.default),
-                cocoa.YES,
+                .YES,
             },
         );
         if (event.value != null) {
             // run your own dispatcher...
-            NSApp.message(void, "sendEvent:", .{event});
-            NSApp.message(void, "updateWindows", .{});
+            NSApp.msgSend(void, "sendEvent:", .{event});
+            NSApp.msgSend(void, "updateWindows", .{});
         } else if (hasIdle) {
             // run idle method...
         }
     }
-    pool.message(void, "release", .{});
+    pool.msgSend(void, "release", .{});
 }

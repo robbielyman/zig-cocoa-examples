@@ -14,24 +14,23 @@ pub const NSView = @import("cocoa/NSView.zig");
 
 pub fn NSString(string: [:0]const u8) objc.Object {
     const nsstring = objc.getClass("NSString").?;
-    return nsstring.message(objc.Object, "stringWithUTF8String:", .{string.ptr});
+    return nsstring.msgSend(objc.Object, "stringWithUTF8String:", .{string.ptr});
 }
 
 pub fn descriptionToOwnedSlice(allocator: std.mem.Allocator, object: objc.Object) ![:0]const u8 {
-    const str = object.message(objc.Object, "description", .{});
+    const str = object.msgSend(objc.Object, "description", .{});
     const slice = std.mem.sliceTo(str.getProperty([*:0]const u8, "UTF8String"), 0);
     return allocator.dupeZ(u8, slice);
 }
 
-pub const BOOL = enum(i8) {
-    YES = 1,
-    NO = 0,
-};
-pub const YES: i8 = 1;
-pub const NO: i8 = 0;
+pub const YES = if (objc.c.BOOL == bool) true else @as(i8, 1);
+pub const NO = if (objc.c.BOOL == bool) false else @as(i8, 0);
+
+pub const nil = @as(objc.c.id, null);
+pub const Nil = @as(objc.c.Class, null);
 
 pub fn alloc(class: objc.Class) objc.Object {
-    return class.message(objc.Object, "alloc", .{});
+    return class.msgSend(objc.Object, "alloc", .{});
 }
 
 pub extern "C" fn NSLog(format: objc.c.id, ...) void;

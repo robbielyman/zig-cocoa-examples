@@ -4,7 +4,7 @@ const objc = @import("zig-objc");
 
 var allocator: std.mem.Allocator = undefined;
 
-fn setup() void {
+fn setup() !void {
     const Window = objc.allocateClassPair(objc.getClass("NSWindow").?, "Window").?;
     defer objc.registerClassPair(Window);
     std.debug.assert(Window.addIvar("label"));
@@ -24,18 +24,16 @@ fn setup() void {
             _ = sel;
             onTimerTickInner(objc.Object.fromId(target), objc.Object.fromId(timer));
         }
-        fn windowShouldClose(target: objc.c.id, sel: objc.c.SEL, sender: objc.c.id) callconv(.C) i8 {
+        fn windowShouldClose(target: objc.c.id, sel: objc.c.SEL, sender: objc.c.id) callconv(.C) objc.c.BOOL {
             _ = sel;
             _ = target;
-            cocoa.NSApp().message(void, "terminate:", .{sender});
+            cocoa.NSApp().msgSend(void, "terminate:", .{sender});
             return cocoa.YES;
         }
     };
     Window.replaceMethod("init", window.init);
-    var onbuttonptr = &window.onButtonClick;
-    var ontimerptr = &window.onTimerTick;
-    std.debug.assert(objc.c.class_addMethod(Window.value, objc.sel("onButtonClick:").value, @ptrCast(onbuttonptr), "v@:@"));
-    std.debug.assert(objc.c.class_addMethod(Window.value, objc.sel("onTimerTick:").value, @ptrCast(ontimerptr), "v@:@"));
+    _ = try Window.addMethod("onButtonClick:", window.onButtonClick);
+    _ = try Window.addMethod("onTimerTick:", window.onTimerTick);
     Window.replaceMethod("windowShouldClose:", window.windowShouldClose);
 }
 
@@ -53,18 +51,18 @@ fn onButtonClickInner(self: objc.Object, sender: objc.Object) void {
     _ = sender;
     const button = self.getInstanceVariable("button");
     const is_equal = button.getProperty(objc.Object, "title")
-        .message(i8, "isEqual:", .{cocoa.NSString("Start")}) == cocoa.YES;
+        .msgSend(objc.c.BOOL, "isEqual:", .{cocoa.NSString("Start")}) == cocoa.YES;
     if (is_equal) {
         const timer = objc.getClass("NSTimer").?
-            .message(objc.Object, "timerWithTimeInterval:target:selector:userInfo:repeats:", .{
+            .msgSend(objc.Object, "timerWithTimeInterval:target:selector:userInfo:repeats:", .{
             @as(f64, 0.1),
             self,
             objc.sel("onTimerTick:").value,
             self,
             true,
         });
-        objc.getClass("NSRunLoop").?.message(objc.Object, "mainRunLoop", .{})
-            .message(void, "addTimer:forMode:", .{
+        objc.getClass("NSRunLoop").?.msgSend(objc.Object, "mainRunLoop", .{})
+            .msgSend(void, "addTimer:forMode:", .{
             timer,
             cocoa.NSRunLoop.Mode(.default),
         });
@@ -72,7 +70,7 @@ fn onButtonClickInner(self: objc.Object, sender: objc.Object) void {
         button.setProperty("title", .{cocoa.NSString("Stop")});
     } else {
         const timer = self.getInstanceVariable("timer");
-        timer.message(void, "invalidate", .{});
+        timer.msgSend(void, "invalidate", .{});
         button.setProperty("title", .{cocoa.NSString("Start")});
     }
 }
@@ -82,26 +80,26 @@ fn initInner(self: objc.Object) objc.Object {
     self.setInstanceVariable("counter", cocoa.NSNumber.from(u64, counter));
 
     const label = cocoa.alloc(objc.getClass("NSTextField").?)
-        .message(objc.Object, "initWithFrame:", .{cocoa.NSRect.make(10, 50, 210, 70)})
-        .message(objc.Object, "autorelease", .{});
+        .msgSend(objc.Object, "initWithFrame:", .{cocoa.NSRect.make(10, 50, 210, 70)})
+        .msgSend(objc.Object, "autorelease", .{});
     const str = std.fmt.allocPrintZ(allocator, "{d}", .{@as(f64, @floatFromInt(counter)) / 10.0}) catch @panic("OOM!");
     defer allocator.free(str);
     label.setProperty("stringValue", .{cocoa.NSString(str)});
-    label.message(void, "setBezeled:", .{cocoa.NO});
-    label.message(void, "setDrawsBackground:", .{cocoa.NO});
-    label.setProperty("editable", .{cocoa.NO});
-    label.message(void, "setSelectable:", .{cocoa.NO});
+    label.msgSend(void, "setBezeled:", .{false});
+    label.msgSend(void, "setDrawsBackground:", .{false});
+    label.setProperty("editable", .{false});
+    label.msgSend(void, "setSelectable:", .{false});
     label.setProperty("textColor", .{cocoa.NSColor.colorWithSRGB(0.117, 0.565, 1.0, 1.0)});
-    var font = objc.getClass("NSFont").?.message(objc.Object, "fontWithName:size:", .{
+    var font = objc.getClass("NSFont").?.msgSend(objc.Object, "fontWithName:size:", .{
         cocoa.NSString("Avenir"),
         @as(f64, 64),
     });
-    const sharedFontManager = objc.getClass("NSFontManager").?.message(objc.Object, "sharedFontManager", .{});
-    font = sharedFontManager.message(objc.Object, "convertFont:toHaveTrait:", .{
+    const sharedFontManager = objc.getClass("NSFontManager").?.msgSend(objc.Object, "sharedFontManager", .{});
+    font = sharedFontManager.msgSend(objc.Object, "convertFont:toHaveTrait:", .{
         font,
         @as(u64, 1),
     });
-    font = sharedFontManager.message(objc.Object, "convertFont:toHaveTrait:", .{
+    font = sharedFontManager.msgSend(objc.Object, "convertFont:toHaveTrait:", .{
         font,
         @as(u64, 2),
     });
@@ -109,16 +107,16 @@ fn initInner(self: objc.Object) objc.Object {
     self.setInstanceVariable("label", label);
 
     const button = cocoa.alloc(objc.getClass("NSButton").?)
-        .message(objc.Object, "initWithFrame:", .{
+        .msgSend(objc.Object, "initWithFrame:", .{
         cocoa.NSRect.make(10, 10, 90, 32),
     })
-        .message(objc.Object, "autorelease", .{});
+        .msgSend(objc.Object, "autorelease", .{});
     button.setProperty("action", .{objc.sel("onButtonClick:")});
     button.setProperty("bezelStyle", .{.Push});
     button.setProperty("title", .{cocoa.NSString("Start")});
     self.setInstanceVariable("button", button);
 
-    self.message_super(
+    self.msgSendSuper(
         objc.getClass("NSWindow").?,
         void,
         "initWithContentRect:styleMask:backing:defer:",
@@ -126,26 +124,26 @@ fn initInner(self: objc.Object) objc.Object {
             cocoa.NSRect.make(100, 100, 230, 130),
             cocoa.NSWindow.StyleMask.default,
             .Buffered,
-            cocoa.NO,
+            .NO,
         },
     );
     self.setProperty("title", .{cocoa.NSString("Label Example")});
-    const contentView = self.message(objc.Object, "contentView", .{});
-    contentView.message(void, "addSubview:", .{label});
-    contentView.message(void, "addSubview:", .{button});
-    self.message(void, "setIsVisible:", .{cocoa.YES});
+    const contentView = self.msgSend(objc.Object, "contentView", .{});
+    contentView.msgSend(void, "addSubview:", .{label});
+    contentView.msgSend(void, "addSubview:", .{button});
+    self.msgSend(void, "setIsVisible:", .{.YES});
     return self;
 }
 
-pub fn main() void {
+pub fn main() !void {
     var buf: [256]u8 = undefined;
     var fba = std.heap.FixedBufferAllocator.init(&buf);
     allocator = fba.allocator();
-    setup();
+    try setup();
     const NSApp = cocoa.NSApp();
     const window1 = cocoa.alloc(objc.getClass("Window").?)
-        .message(objc.Object, "init", .{})
-        .message(objc.Object, "autorelease", .{});
-    window1.message(void, "makeMainWindow", .{});
-    NSApp.message(void, "run", .{});
+        .msgSend(objc.Object, "init", .{})
+        .msgSend(objc.Object, "autorelease", .{});
+    window1.msgSend(void, "makeMainWindow", .{});
+    NSApp.msgSend(void, "run", .{});
 }

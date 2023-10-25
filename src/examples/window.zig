@@ -11,8 +11,8 @@ fn setup() void {
             _ = sel;
             const self = objc.Object.fromId(target);
             const button = cocoa.alloc(objc.getClass("NSButton").?)
-                .message(objc.Object, "initWithFrame:", .{cocoa.NSRect.make(10, 143, 90, 32)})
-                .message(objc.Object, "autorelease", .{});
+                .msgSend(objc.Object, "initWithFrame:", .{cocoa.NSRect.make(10, 143, 90, 32)})
+                .msgSend(objc.Object, "autorelease", .{});
             button.setProperty("title", .{cocoa.NSString("Close")});
             button.setProperty("bezelStyle", .{.Push});
             button.setProperty("action", .{objc.sel("performClose:")});
@@ -22,7 +22,7 @@ fn setup() void {
             button.setProperty("AutoresizingMask", .{mask});
             self.setInstanceVariable("button", button);
 
-            self.message_super(
+            self.msgSendSuper(
                 objc.getClass("NSWindow").?,
                 void,
                 "initWithContentRect:styleMask:backing:defer:",
@@ -30,54 +30,50 @@ fn setup() void {
                     cocoa.NSRect.make(320, 200, 300, 300),
                     cocoa.NSWindow.StyleMask.default,
                     .Buffered,
-                    .NO,
+                    cocoa.NO,
                 },
             );
             self.setProperty("title", .{cocoa.NSString("Window example")});
-            self.message(objc.Object, "contentView", .{})
-                .message(void, "addSubview:", .{button});
-            self.setProperty("isVisible", .{cocoa.YES});
+            self.msgSend(objc.Object, "contentView", .{})
+                .msgSend(void, "addSubview:", .{button});
+            self.setProperty("isVisible", .{.YES});
             return self.value;
         }
-        fn shouldClose(target: objc.c.id, sel: objc.c.SEL, sender: objc.c.id) callconv(.C) i8 {
+        fn shouldClose(target: objc.c.id, sel: objc.c.SEL, sender: objc.c.id) callconv(.C) objc.c.BOOL {
             _ = sel;
-            return @intFromEnum(shouldCloseInner(objc.Object.fromId(target), objc.Object.fromId(sender)));
+            return shouldCloseInner(objc.Object.fromId(target), objc.Object.fromId(sender));
         }
     };
     Window.replaceMethod("init", window.init);
     Window.replaceMethod("windowShouldClose:", window.shouldClose);
 }
 
-fn shouldCloseInner(self: objc.Object, sender: objc.Object) cocoa.BOOL {
-    const Captures = struct {
-        sender: objc.c.id,
-    };
-    const Block = objc.Block(Captures, fn (blk: *anyopaque, returnCode: i64) void);
-    const captures: Captures = .{
+fn shouldCloseInner(self: objc.Object, sender: objc.Object) objc.c.BOOL {
+    const Block = objc.Block(struct { sender: objc.c.id }, .{i64}, void);
+    const captures: Block.Captures = .{
         .sender = sender.value,
     };
     const inner = struct {
-        fn invokeFn(blk: *anyopaque, returnCode: i64) callconv(.C) void {
-            const block: *Block = @ptrCast(@alignCast(blk));
+        fn invokeFn(blk: *const Block.Context, returnCode: i64) callconv(.C) void {
             if (returnCode == 1000) {
-                objc.Object.fromId(block.sender).message(void, "close", .{});
-                cocoa.NSApp().message(void, "stop:", .{block.sender});
+                objc.Object.fromId(blk.sender).msgSend(void, "close", .{});
+                cocoa.NSApp().msgSend(void, "stop:", .{blk.sender});
             }
         }
     };
-    var block = objc.initBlock(Block, captures, inner.invokeFn);
+    var block = Block.init(captures, inner.invokeFn) catch @panic("OOM!");
     const alert = cocoa.alloc(objc.getClass("NSAlert").?)
-        .message(objc.Object, "init", .{});
+        .msgSend(objc.Object, "init", .{});
     alert.setProperty("messageText", .{cocoa.NSString("Close Window")});
     alert.setProperty("informativeText", .{cocoa.NSString("Are you sure you want to exit?")});
     alert.setProperty("alertStyle", .{@as(u64, 0)});
-    alert.message(void, "addButtonWithTitle:", .{cocoa.NSString("YES")});
-    alert.message(void, "addButtonWithTitle:", .{cocoa.NSString("NO")});
-    alert.message(void, "beginSheetModalForWindow:completionHandler:", .{
+    alert.msgSend(void, "addButtonWithTitle:", .{cocoa.NSString("YES")});
+    alert.msgSend(void, "addButtonWithTitle:", .{cocoa.NSString("NO")});
+    alert.msgSend(void, "beginSheetModalForWindow:completionHandler:", .{
         self,
         block,
     });
-    return .NO;
+    return cocoa.NO;
 }
 
 pub fn main() void {
@@ -85,8 +81,8 @@ pub fn main() void {
     const NSApp = cocoa.NSApp();
     const Window = objc.getClass("Window").?;
     cocoa.alloc(Window)
-        .message(objc.Object, "init", .{})
-        .message(objc.Object, "autorelease", .{})
-        .message(void, "makeMainWindow", .{});
-    NSApp.message(void, "run", .{});
+        .msgSend(objc.Object, "init", .{})
+        .msgSend(objc.Object, "autorelease", .{})
+        .msgSend(void, "makeMainWindow", .{});
+    NSApp.msgSend(void, "run", .{});
 }

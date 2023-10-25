@@ -16,53 +16,53 @@ fn setup() void {
             const NSTabViewItem = objc.getClass("NSTabViewItem").?;
 
             const tabPage1 = cocoa.alloc(NSTabViewItem)
-                .message(objc.Object, "init", .{});
+                .msgSend(objc.Object, "init", .{});
             tabPage1.setProperty("label", .{cocoa.NSString("tabPage1")});
             self.setInstanceVariable("tabPage1", tabPage1);
 
             const tabPage2 = cocoa.alloc(NSTabViewItem)
-                .message(objc.Object, "init", .{});
+                .msgSend(objc.Object, "init", .{});
             tabPage2.setProperty("label", .{cocoa.NSString("tabPage2")});
             self.setInstanceVariable("tabPage2", tabPage2);
 
             const tabPage3 = cocoa.alloc(NSTabViewItem)
-                .message(objc.Object, "init", .{});
+                .msgSend(objc.Object, "init", .{});
             tabPage3.setProperty("label", .{cocoa.NSString("tabPage3")});
             self.setInstanceVariable("tabPage3", tabPage3);
 
             const tabControl = cocoa.alloc(objc.getClass("NSTabView").?)
-                .message(objc.Object, "initWithFrame:", .{cocoa.NSRect.make(0, 0, 370, 245)});
-            tabControl.message(void, "insertTabViewItem:atIndex:", .{
+                .msgSend(objc.Object, "initWithFrame:", .{cocoa.NSRect.make(0, 0, 370, 245)});
+            tabControl.msgSend(void, "insertTabViewItem:atIndex:", .{
                 tabPage1,
                 @as(i64, 0),
             });
-            tabControl.message(void, "insertTabViewItem:atIndex:", .{
+            tabControl.msgSend(void, "insertTabViewItem:atIndex:", .{
                 tabPage2,
                 @as(i64, 1),
             });
-            tabControl.message(void, "insertTabViewItem:atIndex:", .{
+            tabControl.msgSend(void, "insertTabViewItem:atIndex:", .{
                 tabPage3,
                 @as(i64, 2),
             });
             self.setInstanceVariable("tabControl", tabControl);
 
             const stylemask = cocoa.NSWindow.StyleMask.default;
-            self.message_super(objc.getClass("NSWindow").?, void, "initWithContentRect:styleMask:backing:defer:", .{
+            self.msgSendSuper(objc.getClass("NSWindow").?, void, "initWithContentRect:styleMask:backing:defer:", .{
                 cocoa.NSRect.make(100, 100, 390, 270),
                 stylemask,
                 .Buffered,
-                cocoa.NO,
+                .NO,
             });
             self.setProperty("title", .{cocoa.NSString("TabControl example")});
-            self.message(objc.Object, "contentView", .{})
-                .message(void, "addSubview:", .{tabControl});
-            self.setProperty("isVisible", .{cocoa.YES});
+            self.msgSend(objc.Object, "contentView", .{})
+                .msgSend(void, "addSubview:", .{tabControl});
+            self.setProperty("isVisible", .{.YES});
             return self.value;
         }
         fn shouldClose(target: objc.c.id, sel: objc.c.SEL, sender: objc.c.id) callconv(.C) bool {
             _ = sel;
             _ = target;
-            cocoa.NSApp().message(void, "terminate:", .{sender});
+            cocoa.NSApp().msgSend(void, "terminate:", .{sender});
             return true;
         }
     };
@@ -74,8 +74,8 @@ pub fn main() void {
     setup();
     const NSApp = cocoa.NSApp();
     const Window = objc.getClass("Window").?;
-    cocoa.alloc(Window).message(objc.Object, "init", .{})
-        .message(objc.Object, "autorelease", .{})
-        .message(void, "makeMainWindow", .{});
-    NSApp.message(void, "run", .{});
+    cocoa.alloc(Window).msgSend(objc.Object, "init", .{})
+        .msgSend(objc.Object, "autorelease", .{})
+        .msgSend(void, "makeMainWindow", .{});
+    NSApp.msgSend(void, "run", .{});
 }

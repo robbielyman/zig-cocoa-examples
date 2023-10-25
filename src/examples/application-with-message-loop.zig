@@ -15,35 +15,35 @@ pub fn main() void {
         },
         .Buffered,
         false,
-    ).message(objc.Object, "autorelease", .{});
-    window1.setProperty("isVisible", .{cocoa.YES});
+    ).msgSend(objc.Object, "autorelease", .{});
+    window1.setProperty("isVisible", .{.YES});
     const NSApp = cocoa.NSApp();
     const NSAutoReleasePool = objc.getClass("NSAutoreleasePool").?;
-    var pool = cocoa.alloc(NSAutoReleasePool).message(objc.Object, "init", .{});
-    NSApp.message(void, "finishLaunching", .{});
+    var pool = cocoa.alloc(NSAutoReleasePool).msgSend(objc.Object, "init", .{});
+    NSApp.msgSend(void, "finishLaunching", .{});
     while (true) {
-        pool.message(void, "release", .{});
-        pool = cocoa.alloc(NSAutoReleasePool).message(objc.Object, "init", .{});
-        const event = NSApp.message(objc.Object, "nextEventMatchingMask:untilDate:inMode:dequeue:", .{
+        pool.msgSend(void, "release", .{});
+        pool = cocoa.alloc(NSAutoReleasePool).msgSend(objc.Object, "init", .{});
+        const event = NSApp.msgSend(objc.Object, "nextEventMatchingMask:untilDate:inMode:dequeue:", .{
             cocoa.NSEvent.Mask.any,
-            objc.getClass("NSDate").?.message(objc.Object, "distantFuture", .{}).value,
+            objc.getClass("NSDate").?.msgSend(objc.Object, "distantFuture", .{}).value,
             cocoa.NSRunLoop.Mode(.default).value,
-            cocoa.YES,
+            .YES,
         });
         // --> run your own dispatcher ...
-        const point = event.message(cocoa.NSPoint, "locationInWindow", .{});
+        const point = event.msgSend(cocoa.NSPoint, "locationInWindow", .{});
         cocoa.NSLog(
             cocoa.NSString("Event [type=%@ location={%f, %f} modifierFlags]={%@}").value,
-            eventTypeToString(@enumFromInt(event.message(u64, "type", .{}))).value,
+            eventTypeToString(@enumFromInt(event.msgSend(u64, "type", .{}))).value,
             point.x,
             point.y,
-            eventFlagsToString(@bitCast(event.message(u64, "modifierFlags", .{}))).value,
+            eventFlagsToString(@bitCast(event.msgSend(u64, "modifierFlags", .{}))).value,
         );
         // <--
-        NSApp.message(void, "sendEvent:", .{event});
-        NSApp.message(void, "updateWindows", .{});
+        NSApp.msgSend(void, "sendEvent:", .{event});
+        NSApp.msgSend(void, "updateWindows", .{});
     }
-    pool.message(void, "release", .{});
+    pool.msgSend(void, "release", .{});
 }
 
 fn eventTypeToString(event_type: cocoa.NSEvent.Type) objc.Object {
@@ -89,28 +89,28 @@ fn eventTypeToString(event_type: cocoa.NSEvent.Type) objc.Object {
 fn eventFlagsToString(flags: cocoa.NSEvent.ModifierFlags) objc.Object {
     var ret = cocoa.NSString("");
     if (flags.CapsLock) {
-        ret = ret.message(objc.Object, "stringByAppendingString:", .{cocoa.NSString("CapsLock, ")});
+        ret = ret.msgSend(objc.Object, "stringByAppendingString:", .{cocoa.NSString("CapsLock, ")});
     }
     if (flags.Shift) {
-        ret = ret.message(objc.Object, "stringByAppendingString:", .{cocoa.NSString("Shift, ")});
+        ret = ret.msgSend(objc.Object, "stringByAppendingString:", .{cocoa.NSString("Shift, ")});
     }
     if (flags.Control) {
-        ret = ret.message(objc.Object, "stringByAppendingString:", .{cocoa.NSString("Control, ")});
+        ret = ret.msgSend(objc.Object, "stringByAppendingString:", .{cocoa.NSString("Control, ")});
     }
     if (flags.Option) {
-        ret = ret.message(objc.Object, "stringByAppendingString:", .{cocoa.NSString("Option, ")});
+        ret = ret.msgSend(objc.Object, "stringByAppendingString:", .{cocoa.NSString("Option, ")});
     }
     if (flags.Command) {
-        ret = ret.message(objc.Object, "stringByAppendingString:", .{cocoa.NSString("Command, ")});
+        ret = ret.msgSend(objc.Object, "stringByAppendingString:", .{cocoa.NSString("Command, ")});
     }
     if (flags.NumericPad) {
-        ret = ret.message(objc.Object, "stringByAppendingString:", .{cocoa.NSString("NumericPad, ")});
+        ret = ret.msgSend(objc.Object, "stringByAppendingString:", .{cocoa.NSString("NumericPad, ")});
     }
     if (flags.Help) {
-        ret = ret.message(objc.Object, "stringByAppendingString:", .{cocoa.NSString("Help, ")});
+        ret = ret.msgSend(objc.Object, "stringByAppendingString:", .{cocoa.NSString("Help, ")});
     }
     if (flags.Function) {
-        ret = ret.message(objc.Object, "stringByAppendingString:", .{"Function, "});
+        ret = ret.msgSend(objc.Object, "stringByAppendingString:", .{"Function, "});
     }
     return ret;
 }

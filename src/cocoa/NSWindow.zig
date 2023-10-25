@@ -43,11 +43,22 @@ pub const BackingStore = enum(c_uint) {
     Buffered = 2,
 };
 
+pub fn initSuperWith(window: objc.Object, contentRect: cocoa.NSRect, styleMask: StyleMask, backing: BackingStore, deferred: bool) objc.Object {
+    const is_defer = if (deferred) cocoa.YES else cocoa.NO;
+    return window.msgSendSuper(
+        objc.getClass("NSWindow").?,
+        objc.Object,
+        "initWithContentRect:styleMask:backing:defer:",
+        .{ contentRect, styleMask, backing, is_defer },
+    );
+}
+
 pub fn initWith(window: objc.Object, contentRect: cocoa.NSRect, styleMask: StyleMask, backing: BackingStore, deferred: bool) objc.Object {
-    return window.message(objc.Object, "initWithContentRect:styleMask:backing:defer:", .{
+    const is_defer = if (deferred) cocoa.YES else cocoa.NO;
+    return window.msgSend(objc.Object, "initWithContentRect:styleMask:backing:defer:", .{
         contentRect,
         styleMask,
         backing,
-        if (deferred) cocoa.YES else cocoa.NO,
+        is_defer,
     });
 }
