@@ -11,10 +11,25 @@ pub const NSNotification = @import("cocoa/NSNotification.zig");
 pub const NSBezel = @import("cocoa/NSBezel.zig");
 pub const NSNumber = @import("cocoa/NSNumber.zig");
 pub const NSView = @import("cocoa/NSView.zig");
+pub const NSBundle = @import("cocoa/NSBundle.zig");
 
 pub fn NSString(string: [:0]const u8) objc.Object {
     const nsstring = objc.getClass("NSString").?;
     return nsstring.msgSend(objc.Object, "stringWithUTF8String:", .{string.ptr});
+}
+
+/// does not interact with genstrings in the way that the Objective-C macro does.
+pub fn NSLocalizedString(string: [:0]const u8) objc.Object {
+    NSBundle.localizedString(
+        NSBundle.mainBundle(),
+        NSString(string),
+        objc.Object.fromId(nil),
+        objc.Object.fromId(nil),
+    );
+}
+
+pub fn objectAt(array: objc.Object, index: u64) objc.Object {
+    return array.msgSend(objc.Object, "objectAtIndex:", .{index});
 }
 
 pub fn descriptionToOwnedSlice(allocator: std.mem.Allocator, object: objc.Object) ![:0]const u8 {
@@ -32,5 +47,3 @@ pub const Nil = @as(objc.c.Class, null);
 pub fn alloc(class: objc.Class) objc.Object {
     return class.msgSend(objc.Object, "alloc", .{});
 }
-
-pub extern "C" fn NSLog(format: objc.c.id, ...) void;
